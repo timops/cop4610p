@@ -3,9 +3,9 @@
  * myshell.c
  * Tim Green
  * 1/25/14
- * version 1.0
+ * version 2.0
  *
- * Project 1 - UNIX Shell
+ * Project 2 - UNIX Shell
  *
 */
 
@@ -58,6 +58,7 @@ void Cd(struct cmd_struct * prc_cmd, char * var_name);
 void Echo(struct cmd_struct * prc_cmd, char * var_name);
 void History(char **history, int history_size);
 
+// project 2 functions.
 struct job_struct * CreateJob(const struct job_struct * prev_job, char * cmd);
 int DeleteJob(int num_jobs, struct job_struct *job, struct job_struct **curr_jobs);
 struct job_struct * FindJobWithPID(int job_id, int num_jobs, struct job_struct **jobs);
@@ -73,6 +74,7 @@ int main()
   char * history[MAX_HISTORY];
   int history_size = 0;
 
+  // job state.
   struct job_struct * curr_jobs[MAX_JOBS];
   int num_jobs = 0;
   pid_t bkgrd_pid;
@@ -205,17 +207,25 @@ int main()
 
       if (strcmp(prc_cmd.cmd, "exit") == 0)
         finished = 1;
-      else if(strcmp(prc_cmd.cmd, "cd") == 0)
+      else if (strcmp(prc_cmd.cmd, "cd") == 0)
         Cd(&prc_cmd, var_name);
-      else if(strcmp(prc_cmd.cmd, "echo") == 0)
+      else if (strcmp(prc_cmd.cmd, "echo") == 0)
         Echo(&prc_cmd, var_name);
-      else if(strcmp(prc_cmd.cmd, "history") == 0)
+      else if (strcmp(prc_cmd.cmd, "history") == 0)
         History(history, history_size);
-      else if(strcmp(prc_cmd.cmd, "jobs") == 0)
+      else if (strcmp(prc_cmd.cmd, "jobs") == 0)
         PrintJobs(num_jobs, curr_jobs);
       // catch-all for any command that isn't a built-in.
       else
       {
+        if (strcmp(prc_cmd.cmd, "kill") == 0)
+        {
+          pid_t killproc = (pid_t) atoi(prc_cmd.str_args[1]);
+          struct job_struct * killjob;
+          killjob = FindJobWithPID(killproc, num_jobs, curr_jobs);
+          if (killjob)
+            printf("[%d] Terminated %s\n", killjob->id, killjob->cmd);
+        }
         // get the full path from $PATH.
         if (strchr(prc_cmd.cmd, (int) '/') == NULL)
           prc_cmd.cmd = GetFullPath(&prc_cmd);
@@ -530,9 +540,9 @@ struct job_struct * FindJobWithPID(pid_t pid, int num_jobs, struct job_struct **
   for (i=0; i<num_jobs; i++)
   {
     if (jobs[i]->pid == pid)
-      break;
+      return jobs[i];
   }
-  return jobs[i];
+  return NULL;
 }
 
 void PrintJobs(int num_jobs, struct job_struct **curr_jobs)
