@@ -55,6 +55,8 @@ void InitCommand(struct cmd_struct * prc_cmd);
 void ExecvWrapper(const struct cmd_struct * prc_cmd);
 void ShowPrompt();
 void Cd(struct cmd_struct * prc_cmd, char * var_name);
+void Echo(struct cmd_struct * prc_cmd, char * var_name);
+void History(char **history, int history_size);
 
 struct job_struct * CreateJob(const struct job_struct * prev_job, char * cmd);
 int DeleteJob(int num_jobs, struct job_struct *job, struct job_struct **curr_jobs);
@@ -206,24 +208,9 @@ int main()
       else if(strcmp(prc_cmd.cmd, "cd") == 0)
         Cd(&prc_cmd, var_name);
       else if(strcmp(prc_cmd.cmd, "echo") == 0)
-      {
-        // if *only one* of the variables is undefined, print an error message.
-        // eg: echo $HOME $BLAH should print an error assuming blah is undefined.
-        if(strlen(var_name) != 0)
-          printf("%s: Undefined variable.", var_name);
-        else 
-        {
-          int i;
-          for (i=1; i<prc_cmd.args; i++)
-            printf("%s ", prc_cmd.str_args[i]);
-        }
-      }
+        Echo(&prc_cmd, var_name);
       else if(strcmp(prc_cmd.cmd, "history") == 0)
-      {
-        int i;
-        for (i=0; i<history_size; i++)
-          printf("%s", history[i]);
-      }
+        History(history, history_size);
       else if(strcmp(prc_cmd.cmd, "jobs") == 0)
         PrintJobs(num_jobs, curr_jobs);
       // catch-all for any command that isn't a built-in.
@@ -462,6 +449,27 @@ void Cd(struct cmd_struct * prc_cmd, char * var_name)
     if(chdir(prc_cmd->str_args[1]) == -1)
       perror("[ERROR]");
   }
+}
+
+void Echo(struct cmd_struct * prc_cmd, char * var_name)
+{
+  // if *only one* of the variables is undefined, print an error message.
+  // eg: echo $HOME $BLAH should print an error assuming blah is undefined.
+  if(strlen(var_name) != 0)
+    printf("%s: Undefined variable.", var_name);
+  else 
+  {
+    int i;
+    for (i=1; i<prc_cmd->args; i++)
+      printf("%s ", prc_cmd->str_args[i]);
+  }
+}
+
+void History(char **history, int history_size)
+{
+  int i;
+  for (i=0; i<history_size; i++)
+    printf("%s", history[i]);
 }
 
 // create a new job and populate it with information we already know.
