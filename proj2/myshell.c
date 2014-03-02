@@ -54,6 +54,8 @@ char * GetFullPath(struct cmd_struct * prc_cmd);
 void InitCommand(struct cmd_struct * prc_cmd);
 void ExecvWrapper(const struct cmd_struct * prc_cmd);
 void ShowPrompt();
+void Cd(struct cmd_struct * prc_cmd, char * var_name);
+
 struct job_struct * CreateJob(const struct job_struct * prev_job, char * cmd);
 int DeleteJob(int num_jobs, struct job_struct *job, struct job_struct **curr_jobs);
 struct job_struct * FindJobWithPID(int job_id, int num_jobs, struct job_struct **jobs);
@@ -202,28 +204,7 @@ int main()
       if (strcmp(prc_cmd.cmd, "exit") == 0)
         finished = 1;
       else if(strcmp(prc_cmd.cmd, "cd") == 0)
-      {
-        // prc_cmd.args is actually n+1 arguments because it includes the command 
-        // that is invoked as the first arg.
-        if(prc_cmd.args > 2) 
-          printf("[ERROR] too many arguments: %d\n", (prc_cmd.args-1));
-        // if the environment variable isn't set, then print an error message (tcsh behavior).
-        else if( (prc_cmd.args == 2) && (strlen(prc_cmd.str_args[1]) == 0) )
-          printf("%s: Undefined variable.\n", var_name);
-        // no arguments will perform a 'cd $HOME' per the project specification.
-        // this is standard behavior for tcsh.
-        else if (prc_cmd.args == 1)
-        {
-          if(chdir(getenv("HOME")) == -1)
-            perror("[ERROR]");
-        }
-        // the common case: single argument will change to the directory if it exists.
-        else 
-        {
-          if(chdir(prc_cmd.str_args[1]) == -1)
-            perror("[ERROR]");
-        }
-      }
+        Cd(&prc_cmd, var_name);
       else if(strcmp(prc_cmd.cmd, "echo") == 0)
       {
         // if *only one* of the variables is undefined, print an error message.
@@ -457,6 +438,30 @@ void ShowPrompt()
 
   printf("\n%s@myshell%s> ", user, cwd);
   free(cwd);
+}
+
+void Cd(struct cmd_struct * prc_cmd, char * var_name)
+{
+  // prc_cmd.args is actually n+1 arguments because it includes the command 
+  // that is invoked as the first arg.
+  if(prc_cmd->args > 2) 
+    printf("[ERROR] too many arguments: %d\n", (prc_cmd->args-1));
+  // if the environment variable isn't set, then print an error message (tcsh behavior).
+  else if( (prc_cmd->args == 2) && (strlen(prc_cmd->str_args[1]) == 0) )
+    printf("%s: Undefined variable.\n", var_name);
+  // no arguments will perform a 'cd $HOME' per the project specification.
+  // this is standard behavior for tcsh.
+  else if (prc_cmd->args == 1)
+  {
+    if(chdir(getenv("HOME")) == -1)
+      perror("[ERROR]");
+  }
+  // the common case: single argument will change to the directory if it exists.
+  else 
+  {
+    if(chdir(prc_cmd->str_args[1]) == -1)
+      perror("[ERROR]");
+  }
 }
 
 // create a new job and populate it with information we already know.
