@@ -166,6 +166,11 @@ int main()
           {
             if (num_jobs == 0)
               curr_jobs[num_jobs] = CreateJob(NULL, full_cmd);
+            if (num_jobs == 100)
+            {
+              printf("[ERROR]: reached maximum of %d jobs\n", MAX_JOBS);
+              syntaxerr = 1;
+            }
             else
               curr_jobs[num_jobs] = CreateJob(curr_jobs[num_jobs-1], full_cmd);
 
