@@ -26,7 +26,7 @@
 #define MAX_HISTORY 100
 #define MAX_ENV 33
 
-#define MAX_JOBS 100
+#define MAX_JOBS 5
 
 // stores all useful information about the command to be executed. 
 struct cmd_struct
@@ -164,18 +164,21 @@ int main()
           }
           else
           {
-            if (num_jobs == 0)
-              curr_jobs[num_jobs] = CreateJob(NULL, full_cmd);
-            if (num_jobs == 100)
+            if (num_jobs < MAX_JOBS)
+            {
+              if (num_jobs == 0)
+                curr_jobs[num_jobs] = CreateJob(NULL, full_cmd);
+              else
+                curr_jobs[num_jobs] = CreateJob(curr_jobs[num_jobs-1], full_cmd);
+            
+              prc_cmd.bkgrd = 1;
+              num_jobs++;
+            }
+            else 
             {
               printf("[ERROR]: reached maximum of %d jobs\n", MAX_JOBS);
               syntaxerr = 1;
             }
-            else
-              curr_jobs[num_jobs] = CreateJob(curr_jobs[num_jobs-1], full_cmd);
-
-            prc_cmd.bkgrd = 1;
-            num_jobs++;
           }
           break;
 
@@ -258,11 +261,10 @@ int main()
             waitpid(pid, NULL, 0);
         }
       }
-      for (temp=0; temp<prc_cmd.args; temp++)
-        free(prc_cmd.str_args[temp]);
-      var_name[0] = '\0';
     }
-
+    for (temp=0; temp<prc_cmd.args; temp++)
+      free(prc_cmd.str_args[temp]);
+    var_name[0] = '\0';
   }
 
   // global clean up 
