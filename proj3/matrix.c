@@ -36,6 +36,7 @@ int main(void)
 
   Element E[M][N]; 
   pthread_t tid[M][N];
+  pthread_attr_t attr;
 
   int i, j;
 
@@ -59,13 +60,17 @@ int main(void)
   }
   printf("\n");
 
+  // Explicitly create joinable threads, even though it should be the default.
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
   for (i=0; i<M; i++)
   {
     for (j=0; j<N; j++) 
     {
       E[i][j].i = i;
       E[i][j].j = j;
-      int rc = pthread_create(&tid[i][j], NULL, CalcProduct, (void *) &E[i][j]);
+      int rc = pthread_create(&tid[i][j], &attr, CalcProduct, (void *) &E[i][j]);
       if (rc) 
       {
         perror("[ERROR]");
@@ -74,10 +79,19 @@ int main(void)
     }
   }
 
+  pthread_attr_destroy(&attr);
+
   for (i=0; i<M; i++) 
   {
-    for (j=0; i<N; i++) 
-      pthread_join(tid[i][j], NULL);
+    for (j=0; j<N; j++) 
+    {
+      int rc = pthread_join(tid[i][j], NULL);
+      if (rc)
+      {
+        printf("[ERROR]: return code from pthread_join is %d", rc);
+        exit(EXIT_FAILURE);
+      }
+    }
   }
 
   printf("Matrix C = AB\n");
@@ -90,7 +104,7 @@ int main(void)
   }
   printf("\n");
 
-  return 0;
+  pthread_exit(NULL);
 }
 
 /*
