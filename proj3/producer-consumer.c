@@ -94,7 +94,7 @@ void buffer_init(void)
   // create mutex with default attributes (second parameter)
   pthread_mutex_init(&mutex, NULL);
 
-  // create semaphores and initialize (zero produced, max consumable).  second param ensures that only 
+  // create semaphores and initialize (zero full, max empty).  second param ensures that only 
   // threads belonging to this process can share the semaphore data.
   sem_init(&s_empty, 0, BUFFER_SIZE);
   sem_init(&s_full, 0, 0);

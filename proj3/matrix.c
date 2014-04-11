@@ -54,7 +54,7 @@ int main(void)
   for (i=0; i<K; i++)
   {
     for (j=0; j<M; j++)
-      printf("%d ", A[i][j]);
+      printf("%d ", B[i][j]);
 
     printf("\n");
   }
